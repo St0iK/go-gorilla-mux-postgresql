@@ -1,17 +1,19 @@
 package main
 
 import (
-	"fmt"
 	"os"
+
+	"github.com/joho/godotenv"
 )
 
 func main() {
-	fmt.Println("Hello world")
+	godotenv.Load("docker/database.env")
 
 	a := App{}
 	a.Initialize(
-		os.Getenv("APP_DB_USERNAME"),
-		os.Getenv("APP_DB_PASSWORD"),
-		os.Getenv("APP_DB_NAME"))
+		os.Getenv("POSTGRES_USER"),
+		os.Getenv("POSTGRES_PASSWORD"),
+		os.Getenv("POSTGRES_DB"))
+
 	a.Run(":8010")
 }
