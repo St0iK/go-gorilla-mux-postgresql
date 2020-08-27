@@ -1,33 +1,39 @@
 package main
 
 import (
+	"context"
 	"database/sql"
 	"fmt"
 	"log"
+	"os"
 
 	"encoding/json"
 	"net/http"
 	"strconv"
 
 	"github.com/gorilla/mux"
-	_ "github.com/lib/pq"
+	"github.com/jackc/pgx/v4"
 )
 
+// App is our main application with Router & DB
 type App struct {
 	Router *mux.Router
-	DB     *sql.DB
+	DB     *pgx.Conn
 }
 
-func (a *App) Initialize(user, password, dbname string) {
-	connectionString :=
-		fmt.Sprintf("user=%s password=%s dbname=%s sslmode=disable", user, password, dbname)
-
-	var err error
-	a.DB, err = sql.Open("postgres", connectionString)
+// Initialize will connect to the database and initialize the router
+func (a *App) Initialize(dbURL string) {
+	fmt.Println(dbURL)
+	conn, err := pgx.Connect(context.Background(), dbURL)
 	if err != nil {
-		log.Fatal(err)
+		fmt.Fprintf(os.Stderr, "Unable to connect to database: %v\n", err)
+		os.Exit(1)
 	}
+	defer conn.Close(context.Background())
 
+	// set the DB to the App
+	a.DB = conn
+	// set the Router to the App
 	a.Router = mux.NewRouter()
 
 	a.initializeRoutes()
@@ -93,6 +99,7 @@ func (a *App) getProducts(w http.ResponseWriter, r *http.Request) {
 
 func (a *App) createProduct(w http.ResponseWriter, r *http.Request) {
 	var p product
+	fmt.Println(r.Body)
 	decoder := json.NewDecoder(r.Body)
 	if err := decoder.Decode(&p); err != nil {
 		respondWithError(w, http.StatusBadRequest, "Invalid request payload")

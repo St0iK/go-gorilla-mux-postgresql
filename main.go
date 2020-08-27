@@ -10,10 +10,7 @@ func main() {
 	godotenv.Load("docker/database.env")
 
 	a := App{}
-	a.Initialize(
-		os.Getenv("POSTGRES_USER"),
-		os.Getenv("POSTGRES_PASSWORD"),
-		os.Getenv("POSTGRES_DB"))
+	a.Initialize(os.Getenv("DB_CONNECTION_URL"))
 
 	a.Run(":8010")
 }
